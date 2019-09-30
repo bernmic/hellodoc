@@ -7,25 +7,18 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
 
 @ApplicationScoped
 @Path("category")
 @Produces("application/json")
 @Consumes("application/json")
 @Tag(name = "Category", description = "Operations for categories")
-public class CategoryResource {
-
-  private static final Logger LOGGER = Logger.getLogger(CategoryResource.class.getName());
+public class CategoryResource extends BaseResource {
 
   @Inject
   CategoryService categoryService;
@@ -115,31 +108,5 @@ public class CategoryResource {
     }
     categoryService.deleteCategory(entity);
     return Response.status(204).build();
-  }
-
-  @Provider
-  public static class ErrorMapper implements ExceptionMapper<Exception> {
-
-    @Override
-    public Response toResponse(Exception exception) {
-      LOGGER.error("Failed to handle request", exception);
-
-      int code = 500;
-      if (exception instanceof WebApplicationException) {
-        code = ((WebApplicationException) exception).getResponse().getStatus();
-      }
-
-      JsonObjectBuilder entityBuilder = Json.createObjectBuilder()
-              .add("exceptionType", exception.getClass().getName())
-              .add("code", code);
-
-      if (exception.getMessage() != null) {
-        entityBuilder.add("error", exception.getMessage());
-      }
-
-      return Response.status(code)
-              .entity(entityBuilder.build())
-              .build();
-    }
   }
 }
