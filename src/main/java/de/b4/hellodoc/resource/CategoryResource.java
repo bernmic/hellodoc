@@ -106,7 +106,7 @@ public class CategoryResource extends BaseResource {
     if (entity == null) {
       throw new WebApplicationException("Category with id of " + id + " does not exist.", 404);
     }
-    categoryService.deleteCategory(entity);
+    categoryService.delete(entity);
     return Response.status(204).build();
   }
 }

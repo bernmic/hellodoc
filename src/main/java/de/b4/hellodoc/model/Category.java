@@ -23,8 +23,9 @@ public class Category {
           }
   )
   Long id;
-  @Column(length = 100, unique = true)
+  @Column(length = 100, unique = true, nullable = false)
   String name;
+  @Column(nullable = true)
   String description;
 
   public Category() {}

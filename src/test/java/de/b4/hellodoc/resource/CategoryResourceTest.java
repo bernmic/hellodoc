@@ -13,7 +13,7 @@ public class CategoryResourceTest {
     private final Long FIRST_ID = 1000L;
 
     @Test
-    public void testHelloEndpoint() {
+    public void testCategoriesEndpoints() {
 
         //Create the Category "Assurance":
         given()

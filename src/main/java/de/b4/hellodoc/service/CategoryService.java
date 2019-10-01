@@ -40,7 +40,7 @@ public class CategoryService {
   }
 
   @Transactional
-  public void deleteCategory(Category category) {
+  public void delete(Category category) {
     entityManager.remove(category);
   }
 }
