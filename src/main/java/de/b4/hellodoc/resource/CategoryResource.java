@@ -1,7 +1,6 @@
 package de.b4.hellodoc.resource;
 
 import de.b4.hellodoc.model.Category;
-import de.b4.hellodoc.service.CategoryService;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -9,7 +8,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
@@ -20,16 +19,13 @@ import javax.ws.rs.core.Response;
 @Tag(name = "Category", description = "Operations for categories")
 public class CategoryResource extends BaseResource {
 
-  @Inject
-  CategoryService categoryService;
-
   @GET
   @Operation(operationId = "getAllCategories",
     summary = "get all categories",
     description = "This operation retrieves categories from the database"
   )
   public Category[] get() {
-    return categoryService.getAll();
+    return Category.listAll().toArray(new Category[0]);
   }
 
   @GET
@@ -43,7 +39,7 @@ public class CategoryResource extends BaseResource {
     @APIResponse(responseCode = "404", description = "category not found.")
   })
   public Category get(@PathParam("id") Long id) {
-    Category entity = categoryService.getById(id);
+    Category entity = Category.findById(id);
     if (entity == null) {
       throw new WebApplicationException("Category with id of " + id + " does not exist.", 404);
     }
@@ -59,11 +55,12 @@ public class CategoryResource extends BaseResource {
     @APIResponse(responseCode = "201", description = "Category has been created"),
     @APIResponse(responseCode = "422", description = "id was not empty")
   })
+  @Transactional
   public Response create(Category category) {
-    if (category.getId() != null) {
+    if (category.id != null) {
       throw new WebApplicationException("Id was invalidly set on request.", 422);
     }
-    category = categoryService.create(category);
+    category.persist();;
     return Response.ok(category).status(201).build();
   }
 
@@ -78,17 +75,20 @@ public class CategoryResource extends BaseResource {
     @APIResponse(responseCode = "422", description = "id was not set")
   })
   @Path("{id}")
+  @Transactional
   public Category update(@PathParam("id") Long id, Category category) {
-    if (category.getName() == null) {
+    if (category.name == null) {
       throw new WebApplicationException("Category Name was not set on request.", 422);
     }
 
-    Category existingCategory = categoryService.getById(id);
-    if (existingCategory.getId() == null) {
+    Category existingCategory = Category.findById(id);
+    if (existingCategory == null) {
       throw new WebApplicationException("Category with id=" + id + " does not exist.", 404);
     }
-    category.setId(id);
-    return categoryService.update(category);
+    existingCategory.name = category.name;
+    existingCategory.description = category.description;
+    existingCategory.persist();
+    return existingCategory;
   }
 
   @DELETE
@@ -101,12 +101,13 @@ public class CategoryResource extends BaseResource {
     @APIResponse(responseCode = "204", description = "Category was deleted"),
     @APIResponse(responseCode = "404", description = "category not found.")
   })
+  @Transactional
   public Response delete(@PathParam("id") Long id) {
-    Category entity = categoryService.getById(id);
+    Category entity = Category.findById(id);
     if (entity == null) {
       throw new WebApplicationException("Category with id of " + id + " does not exist.", 404);
     }
-    categoryService.delete(entity);
+    entity.delete();
     return Response.status(204).build();
   }
 }

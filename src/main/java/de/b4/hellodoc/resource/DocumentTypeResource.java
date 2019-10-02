@@ -1,14 +1,13 @@
 package de.b4.hellodoc.resource;
 
 import de.b4.hellodoc.model.DocumentType;
-import de.b4.hellodoc.service.DocumentTypeService;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
@@ -19,16 +18,13 @@ import javax.ws.rs.core.Response;
 @Tag(name = "DocumentType", description = "Operations for document types")
 public class DocumentTypeResource extends BaseResource {
 
-  @Inject
-  DocumentTypeService documentTypeService;
-
   @GET
   @Operation(operationId = "getAllDocumentTypes",
     summary = "get all document types",
     description = "This operation retrieves document types from the database"
   )
   public DocumentType[] get() {
-    return documentTypeService.getAll();
+    return DocumentType.listAll().toArray(new DocumentType[0]);
   }
 
   @GET
@@ -42,7 +38,7 @@ public class DocumentTypeResource extends BaseResource {
     @APIResponse(responseCode = "404", description = "documentType not found.")
   })
   public DocumentType get(@PathParam("extension") String extension) {
-    DocumentType entity = documentTypeService.getByExtension(extension);
+    DocumentType entity = DocumentType.findById(extension);
     if (entity == null) {
       throw new WebApplicationException("DocumentType with extension " + extension + " does not exist.", 404);
     }
@@ -58,11 +54,12 @@ public class DocumentTypeResource extends BaseResource {
     @APIResponse(responseCode = "201", description = "DocumentType has been created"),
     @APIResponse(responseCode = "422", description = "extension or name was not set")
   })
+  @Transactional
   public Response create(DocumentType documentType) {
-    if (documentType.getExtension() == null || documentType.getName() == null) {
-      throw new WebApplicationException("Extension od name was not set on request.", 422);
+    if (documentType.extension == null || documentType.name == null) {
+      throw new WebApplicationException("Extension or name was not set on request.", 422);
     }
-    documentType = documentTypeService.create(documentType);
+    documentType.persist();
     return Response.ok(documentType).status(201).build();
   }
 
@@ -77,16 +74,21 @@ public class DocumentTypeResource extends BaseResource {
     @APIResponse(responseCode = "422", description = "extension or name was not set")
   })
   @Path("{extension}")
+  @Transactional
   public DocumentType update(@PathParam("extension") String extension, DocumentType documentType) {
-    if (documentType.getExtension() == null || documentType.getName() == null) {
+    if (documentType.extension == null || documentType.name == null) {
       throw new WebApplicationException("Extension od name was not set on request.", 422);
     }
 
-    DocumentType existingDocumentType = documentTypeService.getByExtension(extension);
-    if (existingDocumentType.getExtension() == null) {
+    DocumentType existingDocumentType = DocumentType.findById(extension);
+    if (existingDocumentType == null) {
       throw new WebApplicationException("DocumentType with extension=" + extension + " does not exist.", 404);
     }
-    return documentTypeService.update(documentType);
+    existingDocumentType.extension = documentType.extension;
+    existingDocumentType.name = documentType.name;
+    existingDocumentType.mimetype = documentType.mimetype;
+    existingDocumentType.persist();
+    return existingDocumentType;
   }
 
   @DELETE
@@ -99,12 +101,13 @@ public class DocumentTypeResource extends BaseResource {
     @APIResponse(responseCode = "204", description = "DocumentType was deleted"),
     @APIResponse(responseCode = "404", description = "documentType not found.")
   })
+  @Transactional
   public Response delete(@PathParam("extension") String extension) {
-    DocumentType entity = documentTypeService.getByExtension(extension);
+    DocumentType entity = DocumentType.findById(extension);
     if (entity == null) {
       throw new WebApplicationException("DocumentType with extension " + extension + " does not exist.", 404);
     }
-    documentTypeService.delete(entity);
+    entity.delete();
     return Response.status(204).build();
   }
 }

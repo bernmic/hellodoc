@@ -10,7 +10,7 @@ import static org.hamcrest.CoreMatchers.not;
 @QuarkusTest
 public class CategoryResourceTest {
     // should match to the initial value of the category sequence
-    private final Long FIRST_ID = 1000L;
+    private final Long FIRST_ID = 1L;
 
     @Test
     public void testCategoriesEndpoints() {
