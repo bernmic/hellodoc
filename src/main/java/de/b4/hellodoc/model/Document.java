@@ -18,4 +18,7 @@ public class Document extends PanacheEntity {
     @ManyToOne
     @JoinColumn(name = "documenttype_id", nullable = false)
     public DocumentType documentType;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    public Category category;
 }

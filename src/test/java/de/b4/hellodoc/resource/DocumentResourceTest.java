@@ -1,5 +1,6 @@
 package de.b4.hellodoc.resource;
 
+import de.b4.hellodoc.model.Category;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,7 @@ public class DocumentResourceTest {
         document.documentType.extension = "xxx";
         document.documentType.name = "Specialtype";
         document.documentType.mimetype = "application/special";
+        document.category = Category.findById(0L);
         String documentJson = JsonbBuilder.create().toJson(document);
         given()
                 .when()
