@@ -1,7 +1,3 @@
-INSERT INTO category(id,name,description) VALUES(0, 'Uncategorized', 'Not assigned to a category');
-INSERT INTO category(id,name,description) VALUES(1, 'Assurance', 'Assurance related');
-INSERT INTO category(id,name,description) VALUES(2, 'Bank', 'Bank related');
-INSERT INTO category(id,name,description) VALUES(3, 'Tax', 'Tax related');
 insert into documenttype (name, extension, mimetype) values('Portable Document Format', 'pdf', 'application/pdf');
 insert into documenttype (name, extension, mimetype) values('Text', 'txt', 'text/plain');
 insert into documenttype (name, extension, mimetype) values('Microsoft Word', 'doc', 'application/msword');

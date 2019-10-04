@@ -6,14 +6,17 @@
   <artifactId>hellodoc</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <commons-text.version>1.8</commons-text.version>
     <surefire-plugin.version>2.22.0</surefire-plugin.version>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <quarkus.version>0.23.2</quarkus.version>
     <apache-poi.version>4.1.0</apache-poi.version>
-    <apache-pdfbox.version>2.0.17</apache-pdfbox.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
+    <metadata-extractor.version>2.12.0</metadata-extractor.version>
+    <apache-lucene.version>8.2.0</apache-lucene.version>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <apache-pdfbox.version>2.0.17</apache-pdfbox.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -58,6 +61,10 @@
       <artifactId>quarkus-smallrye-openapi</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
       <version>${apache-poi.version}</version>
@@ -72,11 +79,30 @@
       <artifactId>poi-scratchpad</artifactId>
       <version>${apache-poi.version}</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
       <version>${apache-pdfbox.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.drewnoakes</groupId>
+      <artifactId>metadata-extractor</artifactId>
+      <version>${metadata-extractor.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>${commons-text.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>${apache-lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queryparser</artifactId>
+      <version>${apache-lucene.version}</version>
     </dependency>
   </dependencies>
   <build>
