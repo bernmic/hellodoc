@@ -11,7 +11,6 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -56,7 +55,7 @@ public class DocumentService {
     String basename = FilenameUtils.getBaseName(path.toString());
     // get the relative path inside the input folder
     Path relativePath = Paths.get(globalConfiguration.getInputDir()).relativize(path).getParent();
-    String subDirectory = relativePath == null ? "" : relativePath.toString();
+    String subDirectory = relativePath == null ? "" : FilenameUtils.separatorsToUnix(relativePath.toString());
     LOGGER.infof("Try to process %s with extension %s and basename %s at path \"%s\"", path.toString(), extension, basename, subDirectory);
 
     Path targetPath = Paths.get(globalConfiguration.getArchiveDir(), subDirectory);
@@ -83,14 +82,7 @@ public class DocumentService {
       return null;
     }
     // get or create the category
-    String categoryName = subDirectory.equals("") ? globalConfiguration.getUncategorizedName() : subDirectory;
-    Category category = Category.find("name", categoryName).firstResult();
-    if (category == null) {
-      category = new Category();
-      category.name = categoryName;
-      category.description = "Created while import";
-      category.persistAndFlush();
-    }
+    Category category = getOrCreateCategory(subDirectory);
     // add document to database
     // first check if document is in database
     if (Document.find("path", targetFile.toString()).firstResult() != null) {
@@ -124,5 +116,19 @@ public class DocumentService {
     } catch (IOException e) {
       LOGGER.error("Error scanning input directory", e);
     }
+  }
+
+  private Category getOrCreateCategory(String subDirectory) {
+    if (subDirectory == null || subDirectory.equals("")) {
+      return null;
+    }
+    Category category = Category.find("name", subDirectory).firstResult();
+    if (category == null) {
+      category = new Category();
+      category.name = subDirectory;
+      category.description = "Created while import";
+      category.persistAndFlush();
+    }
+    return category;
   }
 }

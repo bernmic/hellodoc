@@ -26,7 +26,7 @@ public class DocumentResourceTest {
         document.documentType.extension = "xxx";
         document.documentType.name = "Specialtype";
         document.documentType.mimetype = "application/special";
-        document.category = Category.findById(0L);
+        document.category = null;
         String documentJson = JsonbBuilder.create().toJson(document);
         given()
                 .when()

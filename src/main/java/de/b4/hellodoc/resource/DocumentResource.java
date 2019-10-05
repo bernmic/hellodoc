@@ -3,9 +3,11 @@ package de.b4.hellodoc.resource;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import de.b4.hellodoc.service.LuceneFulltextService;
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -14,6 +16,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import de.b4.hellodoc.model.Document;
 import de.b4.hellodoc.model.DocumentType;
 
+import java.io.File;
 import java.util.List;
 
 @Path("document")
@@ -57,6 +60,23 @@ public class DocumentResource {
       throw new WebApplicationException("Document with id of " + id + " does not exist.", 404);
     }
     return entity;
+  }
+
+  @GET
+  @Path("{id}/download")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response downloadDocument(@PathParam("id") Long id) {
+    Document entity = Document.findById(id);
+    if (entity == null) {
+      throw new WebApplicationException("Document with id of " + id + " does not exist.", 404);
+    }
+    File f = new File(entity.path);
+    if (!f.exists()) {
+      throw new WebApplicationException("File " + entity.path + " does not exist.", 404);
+    }
+    Response.ResponseBuilder responseBuilder = Response.ok(f);
+    responseBuilder.header("Content-Disposition", "attachment;filename=" + FilenameUtils.getName(entity.path));
+    return responseBuilder.build();
   }
 
   @POST

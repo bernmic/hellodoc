@@ -26,9 +26,6 @@ public class GlobalConfiguration {
   private String inputDir;
   private String archiveDir;
 
-  @ConfigProperty(name = "hellodoc.category.uncategorizes", defaultValue = "Uncategorized")
-  String uncategorizedName;
-
   @ConfigProperty(name = "hellodoc.data", defaultValue = "${home}/.hellodoc")
   String home;
 
@@ -98,9 +95,5 @@ public class GlobalConfiguration {
       indexDir = path.toString();
     }
     return indexDir;
-  }
-
-  public String getUncategorizedName() {
-    return uncategorizedName;
   }
 }
