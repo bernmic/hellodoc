@@ -3,7 +3,7 @@ package de.b4.hellodoc.service;
 import de.b4.hellodoc.configuration.GlobalConfiguration;
 import de.b4.hellodoc.model.Document;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
@@ -41,7 +41,7 @@ public class LuceneFulltextService implements FulltextService {
   @Inject
   GlobalConfiguration globalConfiguration;
 
-  public void init() {
+  private void init() {
     analyzer = new StandardAnalyzer();
     try {
       directory = new NIOFSDirectory(Paths.get(globalConfiguration.getIndexDir()));
@@ -60,11 +60,11 @@ public class LuceneFulltextService implements FulltextService {
   public void addToIndex(Document document, String content) throws IOException {
       IndexWriter indexWriter = new IndexWriter(getDirectory(), new IndexWriterConfig(analyzer));
       org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
-      luceneDocument.add(new TextField(FIELD_NAME, document.name, Field.Store.YES));
-      luceneDocument.add(new TextField(FIELD_PATH, document.path, Field.Store.YES));
+      luceneDocument.add(new TextField(FIELD_NAME, document.name, Store.YES));
+      luceneDocument.add(new TextField(FIELD_PATH, document.path, Store.YES));
       luceneDocument.add(new LongPoint(FIELD_ID, document.id));
       luceneDocument.add(new StoredField(FIELD_ID, document.id));
-      luceneDocument.add(new TextField(FIELD_CONTENT, content, Field.Store.NO));
+      luceneDocument.add(new TextField(FIELD_CONTENT, content, Store.NO));
       indexWriter.addDocument(luceneDocument);
       indexWriter.close();
   }
