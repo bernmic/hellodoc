@@ -16,6 +16,19 @@ public class ExtractorService {
   public ExtractorService() {
     LOGGER.info("Start ExtractorService");
     extractors = new HashMap<>();
+    TikaExtractor extractor = new TikaExtractor();
+    extractors.put("txt", extractor);
+    extractors.put("doc", extractor);
+    extractors.put("docx", extractor);
+    extractors.put("xls", extractor);
+    extractors.put("xlsx", extractor);
+    extractors.put("ppt", extractor);
+    extractors.put("pptx", extractor);
+    extractors.put("pdf", extractor);
+    extractors.put("jpg", extractor);
+    extractors.put("tif", extractor);
+    extractors.put("png", extractor);
+    /*
     extractors.put("txt", new TextExtractor());
     extractors.put("pdf", new PdfExtractor());
     extractors.put("doc", new WordExctractor());
@@ -49,6 +62,7 @@ public class ExtractorService {
     extractors.put("wav", imageExtractor);
     extractors.put("avi", imageExtractor);
     extractors.put("mp4", imageExtractor);
+     */
   }
 
   public boolean supportsExtension(String extension) {

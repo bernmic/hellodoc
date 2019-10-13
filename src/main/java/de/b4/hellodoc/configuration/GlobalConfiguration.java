@@ -38,6 +38,11 @@ public class GlobalConfiguration {
   }
 
   public String getHomeDir() {
+    if (home == null) {
+      LOGGER.error("Something went wrong. \"home\" is null. WTF.");
+      home = "${home}/.hellodoc";
+      LOGGER.warn("Set home to " + stringSubstitutor.replace(home));
+    }
     if (homeDir == null) {
       homeDir = FilenameUtils.separatorsToUnix(home);
       homeDir = stringSubstitutor.replace(home);
