@@ -6,6 +6,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import de.b4.hellodoc.service.DocumentService;
 import de.b4.hellodoc.service.LuceneFulltextService;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -27,6 +28,9 @@ public class DocumentResource {
 
   @Inject
   LuceneFulltextService fulltextService;
+
+  @Inject
+  DocumentService documentService;
 
   @GET
   @Operation(operationId = "getAllDocuments",

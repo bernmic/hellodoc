@@ -4,7 +4,8 @@ import de.b4.hellodoc.configuration.GlobalConfiguration;
 import de.b4.hellodoc.model.Category;
 import de.b4.hellodoc.model.Document;
 import de.b4.hellodoc.model.DocumentType;
-import io.quarkus.scheduler.Scheduled;
+import io.quarkus.tika.TikaContent;
+import io.quarkus.tika.TikaParser;
 import org.apache.commons.io.FilenameUtils;
 import org.jboss.logging.Logger;
 
@@ -14,7 +15,6 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
 public class DocumentService {
@@ -24,10 +24,10 @@ public class DocumentService {
   GlobalConfiguration globalConfiguration;
 
   @Inject
-  ExtractorService extractorService;
+  LuceneFulltextService fulltextService;
 
   @Inject
-  LuceneFulltextService fulltextService;
+  TikaParser parser;
 
   public Document addDocument(String path) {
     return addDocument(path, FilenameUtils.getBaseName(path), Category.findById(0));
@@ -48,10 +48,6 @@ public class DocumentService {
   public Document importDocumentFromPath(Path path) {
     // Get the extension and check if supported or not
     String extension = FilenameUtils.getExtension(path.toString()).toLowerCase();
-    if (!extractorService.supportsExtension(extension)) {
-      LOGGER.info("Unsupported document type " + path.toString());
-      return null;
-    }
     // get the basename of the file
     String basename = FilenameUtils.getBaseName(path.toString());
     // get the relative path inside the input folder
@@ -91,7 +87,16 @@ public class DocumentService {
     }
     Document document = addDocument(targetFile.toString(), basename, category);
     try {
-      String content = extractorService.getExtractor(extension).extractContent(Files.newInputStream(targetFile));
+      TikaContent tikaContent = parser.parse(Files.newInputStream(targetFile));
+      String docType = tikaContent.getMetadata().getSingleValue("Content-Type");
+      if (docType != null) {
+        LOGGER.infof("Document has mimetype %s", docType);
+        DocumentType dt = DocumentType.find("mimetype", docType).firstResult();
+        if (dt != null) {
+          LOGGER.infof("Found mimetype %s in database.", docType);
+        }
+      }
+      String content = tikaContent.getText();
       fulltextService.addToIndex(document, content);
     } catch (IOException e) {
       LOGGER.error("Error adding document to index", e);
@@ -99,7 +104,6 @@ public class DocumentService {
     return document;
   }
 
-  @Scheduled(every = "60s")
   public void scanInputDirectory() {
     LOGGER.info("Start scanning input directory " + globalConfiguration.getHomeDir());
     Path home = Paths.get(globalConfiguration.getHomeDir());

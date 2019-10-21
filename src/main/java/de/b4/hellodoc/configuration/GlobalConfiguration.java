@@ -5,7 +5,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-@ApplicationScoped
+@Singleton
 public class GlobalConfiguration {
   private static final Logger LOGGER = Logger.getLogger(ApiConfiguration.class.getName());
   private final static String INPUT_DIR = "input";

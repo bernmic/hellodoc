@@ -16,7 +16,7 @@ public class Document extends PanacheEntity {
     @Column(nullable = false, unique = true)
     public String path;
     @ManyToOne
-    @JoinColumn(name = "documenttype_id", nullable = false)
+    @JoinColumn(name = "documenttype_id", nullable = true)
     public DocumentType documentType;
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
