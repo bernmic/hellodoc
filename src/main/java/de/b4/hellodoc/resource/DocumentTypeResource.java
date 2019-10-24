@@ -26,19 +26,19 @@ public class DocumentTypeResource extends BaseResource {
   }
 
   @GET
-  @Path("{extension}")
+  @Path("{id}")
   @Operation(operationId = "getDocumentTypeByExtension",
-    summary = "get the documentType with the specified extension",
-    description = "This operation retrieves the documentType with the specified extension from the database"
+    summary = "get the documentType with the specified id",
+    description = "This operation retrieves the documentType with the specified id from the database"
   )
   @APIResponses(value = {
     @APIResponse(responseCode = "200", description = "returns the documentType."),
     @APIResponse(responseCode = "404", description = "documentType not found.")
   })
-  public DocumentType get(@PathParam("extension") String extension) {
-    DocumentType entity = DocumentType.findById(extension);
+  public DocumentType get(@PathParam("id") Long id) {
+    DocumentType entity = DocumentType.findById(id);
     if (entity == null) {
-      throw new WebApplicationException("DocumentType with extension " + extension + " does not exist.", 404);
+      throw new WebApplicationException("DocumentType with extension " + id + " does not exist.", 404);
     }
     return entity;
   }
@@ -64,23 +64,23 @@ public class DocumentTypeResource extends BaseResource {
   @PUT
   @Operation(operationId = "updateDocumentType",
     summary = "updates a documentType",
-    description = "This operation updates the documentType with the given extension from the given data"
+    description = "This operation updates the documentType with the given id from the given data"
   )
   @APIResponses(value = {
     @APIResponse(responseCode = "200", description = "Update was successful"),
     @APIResponse(responseCode = "404", description = "documentType not found."),
     @APIResponse(responseCode = "422", description = "extension or name was not set")
   })
-  @Path("{extension}")
+  @Path("{id}")
   @Transactional
-  public DocumentType update(@PathParam("extension") String extension, DocumentType documentType) {
+  public DocumentType update(@PathParam("id") Long id, DocumentType documentType) {
     if (documentType.extension == null || documentType.name == null) {
-      throw new WebApplicationException("Extension od name was not set on request.", 422);
+      throw new WebApplicationException("Extension or name was not set on request.", 422);
     }
 
-    DocumentType existingDocumentType = DocumentType.findById(extension);
+    DocumentType existingDocumentType = DocumentType.findById(id);
     if (existingDocumentType == null) {
-      throw new WebApplicationException("DocumentType with extension=" + extension + " does not exist.", 404);
+      throw new WebApplicationException("DocumentType with id=" + id + " does not exist.", 404);
     }
     existingDocumentType.extension = documentType.extension;
     existingDocumentType.name = documentType.name;
@@ -90,20 +90,20 @@ public class DocumentTypeResource extends BaseResource {
   }
 
   @DELETE
-  @Path("{extension}")
+  @Path("{id}")
   @Operation(operationId = "deleteDocumentType",
     summary = "deletes a documentType",
-    description = "This operation deletes the documentType with the given extension from the database"
+    description = "This operation deletes the documentType with the given id from the database"
   )
   @APIResponses(value = {
     @APIResponse(responseCode = "204", description = "DocumentType was deleted"),
     @APIResponse(responseCode = "404", description = "documentType not found.")
   })
   @Transactional
-  public Response delete(@PathParam("extension") String extension) {
-    DocumentType entity = DocumentType.findById(extension);
+  public Response delete(@PathParam("id") Long id) {
+    DocumentType entity = DocumentType.findById(id);
     if (entity == null) {
-      throw new WebApplicationException("DocumentType with extension " + extension + " does not exist.", 404);
+      throw new WebApplicationException("DocumentType with extension " + id + " does not exist.", 404);
     }
     entity.delete();
     return Response.status(204).build();

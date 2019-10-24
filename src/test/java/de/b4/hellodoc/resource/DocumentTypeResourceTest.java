@@ -1,7 +1,10 @@
 package de.b4.hellodoc.resource;
 
+import de.b4.hellodoc.model.DocumentType;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
+
+import javax.json.bind.JsonbBuilder;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -51,12 +54,18 @@ public class DocumentTypeResourceTest {
                      containsString("XLS")
              );
 
+        DocumentType documentType = DocumentType.find("extension", "pdf").firstResult();
+        documentType.extension = "fdp";
+        documentType.mimetype = "FDP documenttype";
+        documentType.name = "FDP";
+        String documentTypeJson = JsonbBuilder.create().toJson(documentType);
+
         // update documenttype with extension pdf
         given()
                 .when()
-                .body("{\"extension\" : \"pdf\", \"name\" : \"FDP\", \"mimetype\" : \"FDP documenttype\"}")
+                .body(documentTypeJson)
                 .contentType("application/json")
-                .put("/api/documenttype/pdf")
+                .put("/api/documenttype/" + documentType.id)
                 .then()
                 .statusCode(200)
                 .body(
@@ -66,20 +75,20 @@ public class DocumentTypeResourceTest {
 
         // get documenttype with extension pdf
         given()
-                .when().get("/api/documenttype/pdf")
+                .when().get("/api/documenttype/" + documentType.id)
                 .then()
                 .statusCode(200)
                 .body(containsString("FDP"));
 
         // delete documenttype with extension pdf
         given()
-                .when().delete("/api/documenttype/pdf")
+                .when().delete("/api/documenttype/" + documentType.id)
                 .then()
                 .statusCode(204);
 
         // test not found
         given()
-                .when().get("/api/documenttype/pdf")
+                .when().get("/api/documenttype/" + documentType.id)
                 .then()
                 .statusCode(404);
     }

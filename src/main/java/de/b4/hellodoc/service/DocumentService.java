@@ -29,24 +29,45 @@ public class DocumentService {
   @Inject
   TikaParser parser;
 
-  public Document addDocument(String path) {
-    return addDocument(path, FilenameUtils.getBaseName(path), Category.findById(0));
-  }
-
-  public Document addDocument(String path, String name, Category category) {
+  public Document addDocument(String path, String name, String mimetype, Category category) {
     String extension = FilenameUtils.getExtension(path).toLowerCase();
     Document document = new Document();
     document.path = path;
     document.name = name;
-    document.documentType = DocumentType.findById(extension);
+    document.documentType = getDocumentType(mimetype, extension);
     document.category = category;
     document.persist();
     return document;
   }
 
+  private DocumentType getDocumentType(String mimetype, String extension) {
+    DocumentType documentType = DocumentType.find("mimetype", mimetype).firstResult();
+    if (documentType == null) {
+      documentType = new DocumentType();
+      documentType.name = extension.toUpperCase();
+      documentType.extension = extension.toLowerCase();
+      documentType.mimetype = mimetype;
+      documentType.persist();
+    }
+    return documentType;
+  }
+
   @Transactional
-  public Document importDocumentFromPath(Path path) {
-    // Get the extension and check if supported or not
+  public Document importDocumentFromPath(Path path) throws IOException {
+    // parse document
+    TikaContent tikaContent = parser.parse(Files.newInputStream(path));
+    String docType = tikaContent.getMetadata().getSingleValue("Content-Type");
+    if (docType != null) {
+      LOGGER.infof("Document has mimetype %s", docType);
+      DocumentType dt = DocumentType.find("mimetype", docType).firstResult();
+      if (dt != null) {
+        LOGGER.infof("Found mimetype %s in database.", docType);
+      }
+    }
+    String content = tikaContent.getText();
+    String mimetype = tikaContent.getMetadata().getSingleValue("Content-Type");
+
+    // Get the extension
     String extension = FilenameUtils.getExtension(path.toString()).toLowerCase();
     // get the basename of the file
     String basename = FilenameUtils.getBaseName(path.toString());
@@ -85,22 +106,8 @@ public class DocumentService {
     if (Document.find("path", targetFile.toString()).firstResult() != null) {
       LOGGER.warnf("Document with path %s exists. Stopping here!", targetFile.toString());
     }
-    Document document = addDocument(targetFile.toString(), basename, category);
-    try {
-      TikaContent tikaContent = parser.parse(Files.newInputStream(targetFile));
-      String docType = tikaContent.getMetadata().getSingleValue("Content-Type");
-      if (docType != null) {
-        LOGGER.infof("Document has mimetype %s", docType);
-        DocumentType dt = DocumentType.find("mimetype", docType).firstResult();
-        if (dt != null) {
-          LOGGER.infof("Found mimetype %s in database.", docType);
-        }
-      }
-      String content = tikaContent.getText();
-      fulltextService.addToIndex(document, content);
-    } catch (IOException e) {
-      LOGGER.error("Error adding document to index", e);
-    }
+    Document document = addDocument(targetFile.toString(), basename, mimetype, category);
+    fulltextService.addToIndex(document, content);
     return document;
   }
 

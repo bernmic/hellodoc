@@ -38,7 +38,7 @@ public class DocumentResourceTest {
 
         document = Document.findAll().firstResult();
 
-        // get all categories
+        // get all documents
         given()
           .when().get("/api/document")
           .then()
@@ -47,7 +47,7 @@ public class DocumentResourceTest {
                      containsString("Test")
              );
 
-        // update category with id=1
+        // update document with id=1
         document.name = "Whatever";
         document.path = "/dir/whatever";
         documentJson = JsonbBuilder.create().toJson(document);
@@ -63,14 +63,14 @@ public class DocumentResourceTest {
                         containsString("Whatever")
                 );
 
-        // get category with id=1
+        // get document with id=1
         given()
                 .when().get("/api/document/" + document.id)
                 .then()
                 .statusCode(200)
                 .body(containsString("Whatever"));
 
-        // delete category with id=1
+        // delete document with id=1
         given()
                 .when().delete("/api/document/" + document.id)
                 .then()

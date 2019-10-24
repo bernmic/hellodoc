@@ -100,7 +100,10 @@ public class DocumentResource {
     if (document.documentType == null || document.name == null || document.path == null) {
       throw new WebApplicationException("Name, Path and DocumentType need to be set", 422);
     }
-    DocumentType existingDocumentType = DocumentType.findById(document.documentType.extension);
+    DocumentType existingDocumentType = document.documentType.id == null
+            ? null
+            : DocumentType.findById(document.documentType.id);
+
     if (existingDocumentType == null) {
       // create new document type
       document.documentType.persist();

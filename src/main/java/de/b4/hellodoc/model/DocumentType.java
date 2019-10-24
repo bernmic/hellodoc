@@ -1,17 +1,22 @@
 package de.b4.hellodoc.model;
 
-import javax.persistence.*;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+;
 
 @Entity
 @Table(name = "documenttype")
 @Cacheable
-public class DocumentType extends PanacheEntityBase {
-  @Id
+public class DocumentType extends PanacheEntity {
+  @Column(nullable = false)
+  public String mimetype;
+  @Column(nullable = false, unique = true)
   public String extension;
   @Column(nullable = false)
   public String name;
-  @Column(nullable = false)
-  public String mimetype;
 }
