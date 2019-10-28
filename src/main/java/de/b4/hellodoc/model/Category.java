@@ -11,8 +11,8 @@ import javax.persistence.Table;
 @Table(name = "category")
 @Cacheable
 public class Category extends PanacheEntity {
-  @Column(length = 256, unique = true, nullable = false)
+  @Column(name = "name", length = 256, unique = true, nullable = false)
   public String name;
-  @Column(nullable = true)
+  @Column(name = "description", nullable = true)
   public String description;
 }

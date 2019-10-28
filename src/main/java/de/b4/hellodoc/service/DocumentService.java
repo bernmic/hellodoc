@@ -4,6 +4,7 @@ import de.b4.hellodoc.configuration.GlobalConfiguration;
 import de.b4.hellodoc.model.Category;
 import de.b4.hellodoc.model.Document;
 import de.b4.hellodoc.model.DocumentType;
+import de.b4.hellodoc.model.IndexData;
 import io.quarkus.tika.TikaContent;
 import io.quarkus.tika.TikaParser;
 import org.apache.commons.io.FilenameUtils;
@@ -12,9 +13,13 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.TimeZone;
 
 @ApplicationScoped
 public class DocumentService {
@@ -24,16 +29,19 @@ public class DocumentService {
   GlobalConfiguration globalConfiguration;
 
   @Inject
-  LuceneFulltextService fulltextService;
+  FulltextService fulltextService;
 
   @Inject
   TikaParser parser;
 
   public Document addDocument(String path, String name, String mimetype, Category category) {
     String extension = FilenameUtils.getExtension(path).toLowerCase();
+    long timestamp = new File(path).lastModified();
+
     Document document = new Document();
     document.path = path;
     document.name = name;
+    document.fileDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), TimeZone.getDefault().toZoneId());
     document.documentType = getDocumentType(mimetype, extension);
     document.category = category;
     document.persist();
@@ -58,10 +66,10 @@ public class DocumentService {
     TikaContent tikaContent = parser.parse(Files.newInputStream(path));
     String docType = tikaContent.getMetadata().getSingleValue("Content-Type");
     if (docType != null) {
-      LOGGER.infof("Document has mimetype %s", docType);
+      LOGGER.debugf("Document has mimetype %s", docType);
       DocumentType dt = DocumentType.find("mimetype", docType).firstResult();
       if (dt != null) {
-        LOGGER.infof("Found mimetype %s in database.", docType);
+        LOGGER.debugf("Found mimetype %s in database.", docType);
       }
     }
     String content = tikaContent.getText();
@@ -74,7 +82,7 @@ public class DocumentService {
     // get the relative path inside the input folder
     Path relativePath = Paths.get(globalConfiguration.getInputDir()).relativize(path).getParent();
     String subDirectory = relativePath == null ? "" : FilenameUtils.separatorsToUnix(relativePath.toString());
-    LOGGER.infof("Try to process %s with extension %s and basename %s at path \"%s\"", path.toString(), extension, basename, subDirectory);
+    LOGGER.debugf("Try to process %s with extension %s and basename %s at path \"%s\"", path.toString(), extension, basename, subDirectory);
 
     Path targetPath = Paths.get(globalConfiguration.getArchiveDir(), subDirectory);
     Path targetFile = Paths.get(targetPath.toString(), basename + "." + extension);
@@ -84,7 +92,7 @@ public class DocumentService {
       return null;
     }
     // move to the archive path
-    LOGGER.infof("Move %s to %s", path.toString(), targetFile.toString());
+    LOGGER.debugf("Move %s to %s", path.toString(), targetFile.toString());
     if (Files.notExists(targetPath)) {
       try {
         Files.createDirectories(targetPath);
@@ -107,12 +115,12 @@ public class DocumentService {
       LOGGER.warnf("Document with path %s exists. Stopping here!", targetFile.toString());
     }
     Document document = addDocument(targetFile.toString(), basename, mimetype, category);
-    fulltextService.addToIndex(document, content);
+    fulltextService.addToIndex(new IndexData(document, content));
     return document;
   }
 
   public void scanInputDirectory() {
-    LOGGER.info("Start scanning input directory " + globalConfiguration.getHomeDir());
+    LOGGER.debug("Start scanning input directory " + globalConfiguration.getHomeDir());
     Path home = Paths.get(globalConfiguration.getHomeDir());
     Path inputPath = Paths.get(globalConfiguration.getInputDir());
     try {

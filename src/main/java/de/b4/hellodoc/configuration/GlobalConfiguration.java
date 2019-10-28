@@ -5,7 +5,8 @@ import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import javax.inject.Singleton;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,14 +14,17 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-@Singleton
+@ApplicationScoped
 public class GlobalConfiguration {
-  private static final Logger LOGGER = Logger.getLogger(ApiConfiguration.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(GlobalConfiguration.class.getName());
   private final static String INPUT_DIR = "input";
   private final static String ARCHIVE_DIR = "archive";
   private final static String INDEX_DIR = "index";
 
-  private final StringSubstitutor stringSubstitutor;
+  public final static String FULLTEXT_LUCENE = "lucene";
+  public final static String FULLTEXT_ELASTIC = "elastic";
+
+  private StringSubstitutor stringSubstitutor;
   private String homeDir;
   private String indexDir;
   private String inputDir;
@@ -29,7 +33,11 @@ public class GlobalConfiguration {
   @ConfigProperty(name = "hellodoc.data", defaultValue = "${home}/.hellodoc")
   String home;
 
-  public GlobalConfiguration() {
+  @ConfigProperty(name = "hellodoc.fulltext.type", defaultValue = FULLTEXT_LUCENE)
+  String fulltextType;
+
+  private void init() {
+    LOGGER.debug("GlobalComfiguration initialized.....................................................");
     Map<String,String> substitutions;
     substitutions = new HashMap<>();
     substitutions.put("home", System.getProperty("user.home"));
@@ -37,7 +45,11 @@ public class GlobalConfiguration {
     stringSubstitutor = new StringSubstitutor(substitutions);
   }
 
+  @Produces
   public String getHomeDir() {
+    if (stringSubstitutor == null) {
+      init();
+    }
     if (home == null) {
       LOGGER.error("Something went wrong. \"home\" is null. WTF.");
       home = "${home}/.hellodoc";
@@ -57,7 +69,11 @@ public class GlobalConfiguration {
     return homeDir;
   }
 
+  @Produces
   public String getInputDir() {
+    if (stringSubstitutor == null) {
+      init();
+    }
     if (inputDir == null) {
       Path path = Paths.get(getHomeDir(), INPUT_DIR);
       if (Files.notExists(path)) {
@@ -72,7 +88,11 @@ public class GlobalConfiguration {
     return inputDir;
   }
 
+  @Produces
   public String getArchiveDir() {
+    if (stringSubstitutor == null) {
+      init();
+    }
     if (archiveDir == null) {
       Path path = Paths.get(getHomeDir(), ARCHIVE_DIR);
       if (Files.notExists(path)) {
@@ -87,7 +107,11 @@ public class GlobalConfiguration {
     return archiveDir;
   }
 
+  @Produces
   public String getIndexDir() {
+    if (stringSubstitutor == null) {
+      init();
+    }
     if (indexDir == null) {
       Path path = Paths.get(getHomeDir(), INDEX_DIR);
       if (Files.notExists(path)) {
@@ -100,5 +124,10 @@ public class GlobalConfiguration {
       indexDir = path.toString();
     }
     return indexDir;
+  }
+
+  @Produces
+  public String getFulltextType() {
+    return fulltextType;
   }
 }

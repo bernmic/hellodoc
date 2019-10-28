@@ -1,9 +1,10 @@
-package de.b4.hellodoc.service;
+package de.b4.hellodoc.adapter;
 
 import de.b4.hellodoc.configuration.GlobalConfiguration;
 import de.b4.hellodoc.model.Document;
+import de.b4.hellodoc.model.IndexData;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
@@ -19,29 +20,29 @@ import org.apache.lucene.store.NIOFSDirectory;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class LuceneFulltextService implements FulltextService {
-  private final static Logger LOGGER = Logger.getLogger(LuceneFulltextService.class.getName());
+public class LuceneFulltextAdapter implements FulltextAdapter {
+  private final static Logger LOGGER = Logger.getLogger(LuceneFulltextAdapter.class.getName());
 
   private static final String FIELD_NAME = "name";
   private static final String FIELD_PATH = "path";
   private static final String FIELD_ID = "id";
+  private static final String FIELD_MIMETYPE = "mimeType";
   private static final String FIELD_CONTENT = "content";
   private static final int MAX_HITS = 10000;
 
   private StandardAnalyzer analyzer;
   private Directory directory;
 
-  @Inject
-  GlobalConfiguration globalConfiguration;
+  private GlobalConfiguration globalConfiguration;
 
-  private void init() {
+  public void init(GlobalConfiguration globalConfiguration) {
+    this.globalConfiguration = globalConfiguration;
     analyzer = new StandardAnalyzer();
     try {
       directory = new NIOFSDirectory(Paths.get(globalConfiguration.getIndexDir()));
@@ -51,22 +52,21 @@ public class LuceneFulltextService implements FulltextService {
   }
 
   private Directory getDirectory() {
-    if (directory == null) {
-      init();
-    }
     return directory;
   }
 
-  public void addToIndex(Document document, String content) throws IOException {
-      IndexWriter indexWriter = new IndexWriter(getDirectory(), new IndexWriterConfig(analyzer));
-      org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
-      luceneDocument.add(new TextField(FIELD_NAME, document.name, Store.YES));
-      luceneDocument.add(new TextField(FIELD_PATH, document.path, Store.YES));
-      luceneDocument.add(new LongPoint(FIELD_ID, document.id));
-      luceneDocument.add(new StoredField(FIELD_ID, document.id));
-      luceneDocument.add(new TextField(FIELD_CONTENT, content, Store.NO));
-      indexWriter.addDocument(luceneDocument);
-      indexWriter.close();
+  public void addToIndex(IndexData data) throws IOException {
+    IndexWriter indexWriter = new IndexWriter(getDirectory(), new IndexWriterConfig(analyzer));
+    org.apache.lucene.document.Document luceneDocument = new org.apache.lucene.document.Document();
+    luceneDocument.add(new TextField(FIELD_NAME, data.getDocument().name, Field.Store.YES));
+    luceneDocument.add(new TextField(FIELD_PATH, data.getDocument().path, Field.Store.YES));
+    String mimeType = data.getDocument().documentType == null ? "unknown" : data.getDocument().documentType.mimetype;
+    luceneDocument.add(new TextField(FIELD_MIMETYPE, mimeType , Field.Store.YES));
+    luceneDocument.add(new LongPoint(FIELD_ID, data.getDocument().id));
+    luceneDocument.add(new StoredField(FIELD_ID, data.getDocument().id));
+    luceneDocument.add(new TextField(FIELD_CONTENT, data.getContent(), Field.Store.NO));
+    indexWriter.addDocument(luceneDocument);
+    indexWriter.close();
   }
 
   public void removeFromIndex(Document document) {

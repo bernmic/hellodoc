@@ -8,13 +8,17 @@ import javax.persistence.Table;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "document")
 public class Document extends PanacheEntity {
-    @Column(nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 100)
     public String name;
-    @Column(nullable = false, unique = true)
+    @Column(name="path", nullable = false, unique = true)
     public String path;
+    @Column(name = "filedate", nullable = true)
+    public LocalDateTime fileDate;
     @ManyToOne
     @JoinColumn(name = "documenttype_id", nullable = true)
     public DocumentType documentType;

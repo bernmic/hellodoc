@@ -17,11 +17,11 @@ public class ApplicationLifecycleBean {
     DocumentService documentService;
 
     void onStart(@Observes StartupEvent ev) {
-        LOGGER.info("The application is starting...");
+        LOGGER.debug("The application is starting...");
         documentService.scanInputDirectory();
     }
 
     void onStop(@Observes ShutdownEvent ev) {
-        LOGGER.info("The application is stopping...");
+        LOGGER.debug("The application is stopping...");
     }
 }

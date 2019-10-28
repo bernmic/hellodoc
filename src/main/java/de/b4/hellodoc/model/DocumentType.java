@@ -13,10 +13,10 @@ import javax.persistence.Table;
 @Table(name = "documenttype")
 @Cacheable
 public class DocumentType extends PanacheEntity {
-  @Column(nullable = false)
+  @Column(name = "mimetype", nullable = false)
   public String mimetype;
-  @Column(nullable = false, unique = true)
+  @Column(name = "extension", nullable = false, unique = true)
   public String extension;
-  @Column(nullable = false)
+  @Column(name = "name", nullable = false)
   public String name;
 }

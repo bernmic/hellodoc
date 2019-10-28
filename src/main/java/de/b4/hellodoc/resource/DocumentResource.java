@@ -1,22 +1,19 @@
 package de.b4.hellodoc.resource;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import de.b4.hellodoc.service.DocumentService;
-import de.b4.hellodoc.service.LuceneFulltextService;
+import de.b4.hellodoc.model.Document;
+import de.b4.hellodoc.model.DocumentType;
+import de.b4.hellodoc.service.FulltextService;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-import de.b4.hellodoc.model.Document;
-import de.b4.hellodoc.model.DocumentType;
-
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
 
@@ -27,10 +24,7 @@ import java.util.List;
 public class DocumentResource {
 
   @Inject
-  LuceneFulltextService fulltextService;
-
-  @Inject
-  DocumentService documentService;
+  FulltextService fulltextService;
 
   @GET
   @Operation(operationId = "getAllDocuments",
